@@ -11,7 +11,7 @@ import { addResizeHandles } from "./windowResize.js";
 import { allWindows, focusWindow, refresh, register, unregister } from "./windows.js";
 
 function buildFrame() {
-    const root = el("div", { position: "absolute", pointerEvents: "auto", display: "flex", flexDirection: "column", overflow: "hidden", touchAction: "manipulation" });
+    const root = el("div", { position: "absolute", boxSizing: "border-box", pointerEvents: "auto", display: "flex", flexDirection: "column", overflow: "hidden", touchAction: "manipulation" });
     colored(root, (pal) => ({ background: pal.surface, border: `1px solid ${pal.border}`, boxShadow: pal.shadow, color: pal.text }));
     root.style.font = `${FONT.size.md}px ${FONT.ui}`;
     return root;
