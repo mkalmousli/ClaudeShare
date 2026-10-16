@@ -1,0 +1,37 @@
+# Managed by `claudeshare` (systemd runs this project). Values come from .env.
+services:
+  app:
+    build: .
+    restart: "no"          # systemd restarts the whole project on failure
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-auto}
+      USAGE_PERIOD: ${USAGE_PERIOD:-week}
+      USAGE_BUDGET: ${USAGE_BUDGET:-20000000}
+      USAGE_PLAN_TOKENS: ${USAGE_PLAN_TOKENS:-100000000}
+      USAGE_RESET_DAY: ${USAGE_RESET_DAY:-0}
+      USAGE_RESET_HOUR: ${USAGE_RESET_HOUR:-0}
+    volumes:
+      - data:/data
+    ports:
+      - "${BIND:-127.0.0.1}:${PORT:-3000}:3000"
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETUID, SETGID, DAC_OVERRIDE, FOWNER, KILL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: ${MEM_LIMIT:-4g}
+    cpus: ${CPU_LIMIT:-2}
+    pids_limit: 2048
+    tmpfs:
+      - /run/claudeshare:mode=755
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: [cloudflare]
+    restart: "no"
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on: [app]
+
+volumes:
+  data:

@@ -1,0 +1,10 @@
+# ClaudeShare shell profile
+case $- in *i*) ;; *) return ;; esac
+export PS1='\[\e[1;32m\]\u\[\e[0m\] \[\e[1;34m\]\w\[\e[0m\] \$ '
+export HISTSIZE=5000
+alias ls='ls --color=auto' ll='ls -lah' grep='grep --color=auto'
+printf '\e]0;%s\a' "$USER: terminal"
+if [ -z "$CLAUDESHARE_WELCOMED" ]; then
+  export CLAUDESHARE_WELCOMED=1
+  printf '\e[2mType \e[0m\e[1mclaude\e[0m\e[2m to start. Your files live in %s\e[0m\n' "$HOME"
+fi
