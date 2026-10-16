@@ -14,6 +14,10 @@ def _pick(raw: dict, key: str) -> tuple[float | None, str | None]:
     return part.get("utilization"), part.get("resets_at")
 
 
+def cached() -> dict | None:
+    return _cache[1]
+
+
 async def plan_usage() -> dict | None:
     global _cache
     if time.time() - _cache[0] < PLAN_CACHE_SECONDS:

@@ -18,7 +18,7 @@ uv run setup
 ```
 
 The guided setup asks for access (Cloudflare Tunnel: browser sign-in, API token, or existing token; or local only), your
-hostname, usage limits, and resource caps. The default is **browser sign-in**: setup opens Cloudflare's own page, you pick your domain and click
+hostname, the default percentage per person, and resource caps. The default is **browser sign-in**: setup opens Cloudflare's own page, you pick your domain and click
 *Authorize*, and it creates the tunnel, the DNS record and the config for you (no token to copy). API-token
 and existing-token modes are still available. It then builds the image, installs `claudeshare.service` (the only step that uses
 `sudo`), has you sign the shared Claude in once, and creates the first user.
@@ -32,7 +32,7 @@ claudeshare boot on|off            # start automatically at boot
 claudeshare logs [-f]
 claudeshare user add alice         # prints URL + key (shown once)
 claudeshare user list | passwd NAME | del NAME [--purge] | sessions NAME
-claudeshare user limit alice 25%   # a percentage of the plan (or raw tokens like 5m); add --period day|week|month
+claudeshare user limit alice 25%   # a percentage of the plan; add --period day|week|month
 claudeshare login                  # sign the shared source Claude in again
 claudeshare update                 # after `git pull`: rebuild and restart
 ```
@@ -48,7 +48,8 @@ If `claudeshare` is not on your PATH after setup: `uv tool update-shell`.
 - **Shared Claude login:** you sign a single *source* Claude CLI in (`claudeshare login`). The server
   copies its login into every user's `~/.claude`, and keeps it fresh: only the server refreshes the
   token (user copies carry no refresh token, so a rotating token can't break anyone).
-- **Usage:** per-user weighted tokens (input ×1, output ×5, cache write ×1.25, cache read ×0.1) read
+- **Usage:** each person gets a **percentage of your plan**. The plan's weekly reset and its real size are detected
+  automatically from Claude's own plan figures (falling back to a default until there is enough data). Per-user weighted tokens (input ×1, output ×5, cache write ×1.25, cache read ×0.1) read
   from each user's own Claude session logs. The taskbar meter shows your share, time to reset and, when
   available, the whole plan's usage; click it for per-session details. At 100% the user's `claude`
   processes are stopped and new ones refuse to start until the period resets. Terminals and files keep working.

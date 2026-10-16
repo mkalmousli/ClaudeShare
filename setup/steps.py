@@ -6,7 +6,6 @@ MODES = [("Cloudflare Tunnel — sign in with browser", "recommended: one click 
          ("Cloudflare Tunnel — API token", "I paste an API token; the tunnel and DNS are created for me"),
          ("Cloudflare Tunnel — existing", "I already created a tunnel and have its token"),
          ("Local only", "No tunnel: listen on a port (put your own reverse proxy in front)")]
-PERIODS = [("day", ""), ("week", ""), ("month", "")]
 
 
 def access() -> dict[str, str]:
@@ -24,12 +23,10 @@ def access() -> dict[str, str]:
 
 
 def usage() -> dict[str, str]:
-    ui.console.print("Claude's own plan limit is shared by everyone. Give each person a percentage slice per period;\n"
-                     "when they use it up, their [bold]claude[/] stops until the period resets.")
-    period = PERIODS[ui.choose("Usage period", PERIODS, default=2)][0]
+    ui.console.print("Claude's plan limit is shared by everyone. Give each person a percentage of it; the plan's size and weekly\n"
+                     "reset are detected automatically, and when someone uses their slice their [bold]claude[/] pauses until the reset.")
     share = ui.ask_int("Default share per person (percent of the plan)", 20)
-    reset = ui.ask_int("Weekly reset day (0 = Monday … 6 = Sunday)", 0)
-    return {"USAGE_PERIOD": period, "USAGE_SHARE": str(share), "USAGE_RESET_DAY": str(reset)}
+    return {"USAGE_SHARE": str(share)}
 
 
 def resources() -> dict[str, str]:

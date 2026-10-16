@@ -6,7 +6,7 @@ import asyncio
 
 from . import admin_views as view
 from .admin_parse import build_parser, parse_amount
-from .services import accounts, passwords, store, usage
+from .services import accounts, passwords, planusage, store, usage
 
 def cmd_add(args) -> None:
     key = args.key or passwords.new_key()
@@ -30,7 +30,7 @@ def cmd_del(args) -> None:
 def cmd_limit(args) -> None:
     if not store.get(args.name):
         raise ValueError(f'No such user "{args.name}".')
-    changes = {"budget": parse_amount(args.amount)}
+    changes = {"share": parse_amount(args.amount)}
     if args.period:
         changes["period"] = args.period
     store.update(args.name, **changes)
@@ -39,6 +39,7 @@ def cmd_limit(args) -> None:
 
 async def _rows() -> list[dict]:
     rows = []
+    await planusage.plan_usage()
     for user in store.all_users():
         await usage.refresh(user)
         snap = usage.snapshot(user)
@@ -55,6 +56,7 @@ def cmd_sessions(args) -> None:
     user = store.get(args.name)
     if not user:
         raise ValueError(f'No such user "{args.name}".')
+    asyncio.run(planusage.plan_usage())
     asyncio.run(usage.refresh(user))
     view.sessions_table(usage.snapshot(user)["sessions"])
 

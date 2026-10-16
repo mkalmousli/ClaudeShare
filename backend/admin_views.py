@@ -34,7 +34,7 @@ def users_table(rows: list[dict]) -> None:
         pct = row["percent"]
         color = "red" if pct >= 100 else "yellow" if pct >= 80 else "green"
         table.add_row(f"[green]{row['name']}[/]", row["last_login"] or "[dim]never[/]",
-                      f"[{color}]{pct:5.1f}%[/] [dim]of {row['budget']:,.0f}/{row['period']}[/]",
+                      f"[{color}]{pct:5.1f}%[/] [dim]of a {row['share']:g}% share / {row['period']}[/]",
                       when(row["resets_at"]), "[bold green]running[/]" if row["live"] else "[dim]idle[/]")
     console.print()
     console.print(table)

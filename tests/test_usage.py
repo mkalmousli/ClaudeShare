@@ -42,12 +42,13 @@ async def test_budget_exceeded_blocks_and_flags(logs, monkeypatch, tmp_path):
     now = time.time()
     logs.write_text(line("a", "s1", now, output_tokens=1000) + line("a", "s1", now, output_tokens=1000)
                     + line("b", "s2", now, output_tokens=1000))
-    user = User("u1", 20001, "h", budget=9999.0, period="week")
+    user = User("u1", 20001, "h", share=10.0, period="week")
 
     async def fake_call(_user, op, **args):
         return ops_usage.usage(args["offsets"], args["since"])
 
     monkeypatch.setattr(usage.fs_client, "call", fake_call)
+    monkeypatch.setattr(usage.capacity, "estimate", lambda plan, used, period="week": 100_000.0)  # 10% -> 10,000
     monkeypatch.setattr(watcher, "BLOCKED_DIR", tmp_path / "blocked")
     (tmp_path / "blocked").mkdir()
     killed = []
@@ -58,6 +59,21 @@ async def test_budget_exceeded_blocks_and_flags(logs, monkeypatch, tmp_path):
     assert snap["blocked"] and len(snap["sessions"]) == 2
     watcher.apply(user, snap)
     assert (tmp_path / "blocked" / "u1").exists() and killed == [20001]
-    user.budget = 1e9
+    user.share = 100.0
     watcher.apply(user, usage.snapshot(user))
     assert not (tmp_path / "blocked" / "u1").exists()
+
+
+def test_capacity_is_calibrated_from_plan_figure_and_window_from_reset():
+    from backend.services import capacity
+    plan = {"seven_day": 10.0, "seven_day_resets": "2026-10-19T00:00:00+00:00"}
+    assert capacity.estimate(plan, 5_000_000) == 50_000_000  # 5M used = 10% of the plan
+    assert capacity.estimate(plan, 5_000_000, "day") == pytest_approx(50_000_000 / 7)
+    assert capacity.estimate({"seven_day": 0.5}, 1_000_000) == 100_000_000  # too little data: fallback
+    start, end = capacity.plan_week(plan)
+    assert (end - start).days == 7 and end.day == 19
+
+
+def pytest_approx(value):
+    import pytest
+    return pytest.approx(value)

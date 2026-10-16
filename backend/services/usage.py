@@ -3,9 +3,9 @@ import asyncio
 import time
 from datetime import datetime, timezone
 
-from ..config import DEFAULT_BUDGET, DEFAULT_PERIOD, HISTORY_DAYS, WEIGHTS
+from ..config import DEFAULT_PERIOD, DEFAULT_SHARE, HISTORY_DAYS, WEIGHTS
 from ..models import User
-from . import fs_client, procs
+from . import capacity, fs_client, planusage, procs
 from .periods import bounds
 
 LIVE_WINDOW_SECONDS = 120
@@ -27,8 +27,17 @@ async def refresh(user: User) -> None:
             state["events"][event["id"]] = event  # later duplicate lines win
 
 
-def _limits(user: User) -> tuple[float, str]:
-    return (user.budget or DEFAULT_BUDGET), (user.period or DEFAULT_PERIOD)
+def _window(period: str, plan: dict | None) -> tuple[datetime, datetime]:
+    """Weekly periods follow the plan's own reset time when it is known."""
+    return (period == "week" and capacity.plan_week(plan)) or bounds(datetime.now(timezone.utc), period)
+
+
+def _in_window(events, start: datetime, end: datetime) -> list[dict]:
+    return [e for e in events if start.timestamp() <= e["ts"] < end.timestamp()]
+
+
+def _everyone_used(start: datetime, end: datetime) -> float:
+    return sum(weigh(e["tokens"]) for st in _state.values() for e in _in_window(st["events"].values(), start, end))
 
 
 def _sessions(events: list[dict], live: bool) -> list[dict]:
@@ -47,12 +56,12 @@ def _sessions(events: list[dict], live: bool) -> list[dict]:
 
 
 def snapshot(user: User) -> dict:
-    budget, period = _limits(user)
-    start, end = bounds(datetime.now(timezone.utc), period)
-    events = [e for e in _state.get(user.name, {"events": {}})["events"].values()
-              if start.timestamp() <= e["ts"] < end.timestamp()]
+    plan, period, share = planusage.cached(), user.period or DEFAULT_PERIOD, user.share or DEFAULT_SHARE
+    start, end = _window(period, plan)
+    events = _in_window(_state.get(user.name, {"events": {}})["events"].values(), start, end)
+    budget = capacity.estimate(plan, _everyone_used(*_window("week", plan)), period) * share / 100
     used = sum(weigh(e["tokens"]) for e in events)
     live = bool(procs.claude_procs(user.uid))
-    return {"used": used, "budget": budget, "period": period, "percent": 100 * used / budget if budget else 0.0,
+    return {"used": used, "budget": budget, "share": share, "period": period, "percent": 100 * used / budget if budget else 0.0,
             "resets_at": end.timestamp(), "blocked": bool(budget) and used >= budget,
             "sessions": _sessions(events, live)}

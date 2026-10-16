@@ -2,20 +2,16 @@
 import argparse
 import re
 
-from .config import PERIODS, PLAN_TOKENS
-
-UNITS = {"k": 1e3, "m": 1e6, "b": 1e9}
-
+from .config import PERIODS
 
 def parse_amount(text: str) -> float | None:
-    """'25%' is a share of the whole plan; '5m' / '800k' / '12345' are weighted tokens."""
+    """A percentage of the plan: '25' or '25%'. 'default' goes back to the server default."""
     if text == "default":
         return None
-    match = re.fullmatch(r"(\d+(?:\.\d+)?)(%|[kmb])?", text.lower())
-    if not match:
-        raise ValueError("Amount looks like 25%, 5m, 800k or 12345 (or 'default').")
-    number, unit = float(match[1]), match[2]
-    return number / 100 * PLAN_TOKENS if unit == "%" else number * UNITS.get(unit, 1)
+    match = re.fullmatch(r"(\d{1,3}(?:\.\d+)?)%?", text)
+    if not match or not 0 < float(match[1]) <= 100:
+        raise ValueError("Give a percentage between 1 and 100, e.g. 25% (or 'default').")
+    return float(match[1])
 
 
 def build_parser(cmds: dict) -> argparse.ArgumentParser:

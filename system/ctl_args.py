@@ -4,7 +4,7 @@ import sys
 
 NAME = re.compile(r"^[a-z][a-z0-9_-]{1,23}$")
 KEY = re.compile(r"^[A-Za-z0-9_-]{8,128}$")
-AMOUNT = re.compile(r"^(default|\d+(\.\d+)?(%|[kKmMbB])?)$")
+AMOUNT = re.compile(r"^(default|\d{1,3}(\.\d+)?%?)$")
 PERIOD = re.compile(r"^(day|week|month)$")
 
 

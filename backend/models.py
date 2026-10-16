@@ -13,7 +13,7 @@ class User:
     tv: int = 1  # token version: bumping it signs everyone out
     created: str = ""
     last_login: str = ""
-    budget: float | None = None  # weighted tokens; None = server default
+    share: float | None = None  # percent of the plan; None = server default
     period: str | None = None  # day | week | month; None = server default
 
     @property

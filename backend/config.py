@@ -28,10 +28,11 @@ RESERVED_NAMES = {"root", "daemon", "bin", "sys", "nobody", "admin", "claude", "
 WEIGHTS = {"input": 1.0, "output": 5.0, "cache_write": 1.25, "cache_read": 0.1}
 PERIODS = ("day", "week", "month")
 DEFAULT_PERIOD = os.environ.get("USAGE_PERIOD", "week")
-# 100% = what the whole plan allows per period, in weighted tokens (an internal yardstick).
-PLAN_TOKENS = float(os.environ.get("USAGE_PLAN_TOKENS", "100000000"))
+# The plan's real size is measured at runtime; this is only the starting guess until enough data exists.
+FALLBACK_PLAN_TOKENS = float(os.environ.get("USAGE_PLAN_TOKENS", "100000000"))
+MIN_PLAN_PERCENT = 2.0  # below this the plan figure is too small to calibrate from
 DEFAULT_SHARE = float(os.environ.get("USAGE_SHARE", "20"))  # percent of the plan per person
-DEFAULT_BUDGET = PLAN_TOKENS * DEFAULT_SHARE / 100
+PERIOD_WEEKS = {"day": 1 / 7, "week": 1.0, "month": 30 / 7}
 RESET_WEEKDAY = int(os.environ.get("USAGE_RESET_DAY", "0"))  # 0 = Monday
 RESET_HOUR = int(os.environ.get("USAGE_RESET_HOUR", "0"))  # UTC
 HISTORY_DAYS = 32

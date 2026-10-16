@@ -70,6 +70,7 @@ class PlanUsage:
 class Usage:
     used: float
     budget: float
+    share: float
     percent: float
     period: str
     resets_at: float

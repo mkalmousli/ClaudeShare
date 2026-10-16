@@ -3,7 +3,7 @@ import asyncio
 
 from ..config import BLOCKED_DIR, WATCH_SECONDS
 from ..models import User
-from . import procs, store, usage
+from . import planusage, procs, store, usage
 
 
 def _flag(user: User):
@@ -19,6 +19,7 @@ def apply(user: User, snap: dict) -> None:
 
 
 async def tick() -> None:
+    await planusage.plan_usage()  # keeps the plan window and size estimate fresh
     for user in store.all_users():
         try:
             await usage.refresh(user)
