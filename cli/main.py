@@ -2,7 +2,7 @@
 import argparse
 import sys
 
-from . import commands
+from . import commands, lifecycle
 
 HELP = """commands:
   on / off / restart   start or stop the site (data is kept)
@@ -12,7 +12,8 @@ HELP = """commands:
   login                sign the shared source Claude in again
   update               rebuild after `git pull`, then restart
   user add|list|passwd|del|limit|sessions
-  setup                run the guided configuration again"""
+  setup                guided configuration (access, limits, Claude login, first user)
+  uninstall [--purge]  remove the service and command; --purge also deletes all data"""
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -22,6 +23,9 @@ def build_parser() -> argparse.ArgumentParser:
         sub.add_parser(name)
     logs = sub.add_parser("logs")
     logs.add_argument("-f", "--follow", action="store_true")
+    gone = sub.add_parser("uninstall")
+    gone.add_argument("--purge", action="store_true")
+    gone.add_argument("-y", "--yes", action="store_true")
     boot = sub.add_parser("boot")
     boot.add_argument("setting", choices=["on", "off"])
     sub.add_parser("user").add_argument("args", nargs=argparse.REMAINDER)
@@ -31,9 +35,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = build_parser().parse_args()
     table = {"on": commands.on, "off": commands.off, "restart": commands.restart, "status": commands.status,
-             "login": commands.login, "update": commands.update, "setup": commands.setup,
+             "login": commands.login, "update": commands.update, "setup": lifecycle.setup,
              "logs": lambda: commands.logs(args.follow), "boot": lambda: commands.boot(args.setting),
-             "user": lambda: commands.user(args.args)}
+             "user": lambda: commands.user(args.args),
+             "uninstall": lambda: lifecycle.uninstall(args.purge, args.yes)}
     sys.exit(table[args.cmd]())
 
 

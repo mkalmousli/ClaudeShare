@@ -14,7 +14,7 @@ def allowed() -> bool:
 def helper(*args: str, capture: bool = False) -> subprocess.CompletedProcess:
     """Run the helper; stdin/stdout stay attached to the terminal unless `capture` is set."""
     if not allowed():
-        fail("You are not set up to control ClaudeShare yet. Run `uv run setup` once, then log out and in again.")
+        fail("You are not set up to control ClaudeShare yet. Run `uv run install` in the project folder first.")
         sys.exit(1)
     return subprocess.run(["sudo", "-n", HELPER, *args], capture_output=capture, text=capture)
 

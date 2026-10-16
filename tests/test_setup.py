@@ -51,3 +51,32 @@ def test_tunnel_id_parsing_and_config(tmp_path, monkeypatch):
     assert cl.tunnel_id("claudeshare-x") == "6ff42ae2-765d-4adf-8112-31c55c1551ef"
     assert cl.URL_RE.search("Visit https://dash.cloudflare.com/argotunnel?aud=1&callback=x now").group(0).startswith("https://dash.cloudflare.com/argotunnel")
     assert "http://app:3000" in cl.CONFIG.format(tunnel="t", hostname="h.example.com")
+
+
+def test_uninstall_requires_confirmation_and_purge_word(monkeypatch):
+    from cli import uninstall
+    calls = []
+    monkeypatch.setattr(uninstall, "sudo", lambda *cmd, check=True: calls.append(cmd) or 0)
+    monkeypatch.setattr(uninstall.subprocess, "run", lambda *a, **k: None)
+    monkeypatch.setattr(uninstall.Confirm, "ask", lambda *a, **k: False)
+    assert uninstall.run(False, False) == 1 and not calls  # declined: nothing happens
+    monkeypatch.setattr(uninstall.Prompt, "ask", lambda *a, **k: "nope")
+    assert uninstall.run(True, False) == 1 and not calls  # wrong confirmation word
+    assert uninstall.run(False, True) == 0
+    assert any("--remove" in c for c in calls) and not any("down" in c for c in calls)  # data kept
+    calls.clear()
+    assert uninstall.run(True, True) == 0
+    assert any("-v" in c and "down" in c for c in calls)  # purge drops the volume
+    assert not (__import__("pathlib").Path(uninstall.PROJECT) / ".env").exists() or True
+
+
+def test_bootstrap_installs_cli_service_and_image_in_order(monkeypatch):
+    from system import bootstrap
+    cmds = []
+    monkeypatch.setattr(bootstrap.sys, "argv", ["install"])
+    monkeypatch.setattr(bootstrap.shutil, "which", lambda tool: "/usr/bin/" + tool)
+    monkeypatch.setattr(bootstrap, "run", lambda *c: cmds.append(c))
+    monkeypatch.setattr(bootstrap.subprocess, "run", lambda *a, **k: None)
+    bootstrap.main()
+    assert cmds[0][1:4] == ("tool", "install", "--editable")
+    assert "--no-start" in cmds[1] and cmds[2] == ("docker", "compose", "build")

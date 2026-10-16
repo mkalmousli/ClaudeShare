@@ -87,10 +87,3 @@ def user(args: list[str]) -> int:
         out.fail("usage: claudeshare user add|list|passwd|del|limit|sessions …")
         return 2
     return helper("admin", *args).returncode
-
-
-def setup() -> int:
-    from setup.main import main as run_setup
-    sys.argv = ["setup"]
-    run_setup()
-    return 0

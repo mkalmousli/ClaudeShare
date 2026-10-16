@@ -17,7 +17,7 @@ dev = ["pytest>=8.3", "pytest-asyncio>=0.24"]
 
 [project.scripts]
 claudeshare = "cli.main:main"
-setup = "setup.main:main"
+install = "system.bootstrap:main"
 
 [build-system]
 requires = ["hatchling"]

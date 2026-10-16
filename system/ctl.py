@@ -24,7 +24,7 @@ def project() -> str:
     try:
         return open(CONF).read().strip()
     except OSError:
-        die("ClaudeShare is not installed (run `uv run setup` first).")
+        die("ClaudeShare is not installed (run `uv run install` first).")
 
 
 def systemctl(*args: str) -> None:

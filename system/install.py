@@ -1,6 +1,6 @@
 """One-time root install: systemd unit, `claudeshare` group, sudoers rule, root helper.
 
-Usage (run via sudo by `uv run setup`):  python -m system.install --user NAME --project DIR
+Usage (run via sudo by `uv run install`, `claudeshare setup` and `claudeshare uninstall`):  python -m system.install --user NAME --project DIR
        python -m system.install --remove
 """
 import argparse
@@ -47,7 +47,7 @@ def write(path: Path, text: str, mode: int) -> None:
     os.chmod(path, mode)
 
 
-def install(user: str, project: Path) -> None:
+def install(user: str, project: Path, start: bool = True) -> None:
     docker = shutil.which("docker")
     if not docker:
         sys.exit("Docker is not installed.")
@@ -66,7 +66,8 @@ def install(user: str, project: Path) -> None:
         sys.exit("Generated sudoers rule failed validation; nothing was enabled.")
     run("systemctl", "daemon-reload")
     run("systemctl", "enable", UNIT_PATH.name)
-    run("systemctl", "restart", UNIT_PATH.name)  # also picks up a changed .env on re-runs
+    if start:  # a fresh install stays off until `claudeshare setup` has configured it
+        run("systemctl", "restart", UNIT_PATH.name)  # also picks up a changed .env on re-runs
 
 
 def remove() -> None:
@@ -83,13 +84,14 @@ def main() -> None:
     parser.add_argument("--user")
     parser.add_argument("--project")
     parser.add_argument("--remove", action="store_true")
+    parser.add_argument("--no-start", action="store_true")
     args = parser.parse_args()
     if os.geteuid() != 0:
         sys.exit("This step must run as root (setup calls it through sudo).")
     if args.remove:
         remove()
     elif args.user and args.project:
-        install(args.user, Path(args.project).resolve())
+        install(args.user, Path(args.project).resolve(), start=not args.no_start)
     else:
         parser.error("--user and --project are required")
 

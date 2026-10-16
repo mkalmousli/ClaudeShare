@@ -1,4 +1,4 @@
-"""`uv run setup`: guided, colour-coded installation."""
+"""`claudeshare setup`: guided, colour-coded configuration."""
 import argparse
 
 from . import deploy, envfile, steps, ui

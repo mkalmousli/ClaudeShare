@@ -14,10 +14,11 @@ Requirements: Linux with Docker and [uv](https://docs.astral.sh/uv/). Then:
 
 ```sh
 git clone https://github.com/mkalmousli/ClaudeShare && cd ClaudeShare
-uv run setup
+uv run install      # installs the `claudeshare` command + system service, builds the image
+claudeshare setup   # guided configuration, then start
 ```
 
-The guided setup asks for access (Cloudflare Tunnel: browser sign-in, API token, or existing token; or local only), your
+`claudeshare setup` asks for access (Cloudflare Tunnel: browser sign-in, API token, or existing token; or local only), your
 hostname, the default percentage per person, and resource caps. The default is **browser sign-in**: setup opens Cloudflare's own page, you pick your domain and click
 *Authorize*, and it creates the tunnel, the DNS record and the config for you (no token to copy). API-token
 and existing-token modes are still available. It then builds the image, installs `claudeshare.service` (the only step that uses
@@ -35,6 +36,8 @@ claudeshare user list | passwd NAME | del NAME [--purge] | sessions NAME
 claudeshare user limit alice 25%   # a percentage of the plan; add --period day|week|month
 claudeshare login                  # sign the shared source Claude in again
 claudeshare update                 # after `git pull`: rebuild and restart
+claudeshare setup                  # change access / limits / resources later
+claudeshare uninstall [--purge]    # remove service + command (--purge also deletes ALL data)
 ```
 
 If `claudeshare` is not on your PATH after setup: `uv tool update-shell`.
