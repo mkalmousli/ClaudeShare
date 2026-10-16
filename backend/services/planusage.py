@@ -22,7 +22,7 @@ async def plan_usage() -> dict | None:
     global _cache
     if time.time() - _cache[0] < PLAN_CACHE_SECONDS:
         return _cache[1]
-    result = None
+    result = None  # on failure keep nothing stale: callers fall back to defaults
     token = (credsync.read_source() or {}).get("claudeAiOauth", {}).get("accessToken")
     if token:
         try:

@@ -20,7 +20,7 @@ async function run(query, variables = {}) {
     return body.data;
 }
 
-const USAGE_FIELDS = `used budget percent period resetsAt blocked
+const USAGE_FIELDS = `used budget share points percent period resetsAt blocked
     plan { fiveHour fiveHourResets sevenDay sevenDayResets }
     sessions { id project started last messages tokens live }`;
 

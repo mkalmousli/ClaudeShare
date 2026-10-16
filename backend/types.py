@@ -71,6 +71,7 @@ class Usage:
     used: float
     budget: float
     share: float
+    points: float
     percent: float
     period: str
     resets_at: float

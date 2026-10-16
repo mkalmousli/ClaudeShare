@@ -12,9 +12,9 @@ from .context import Authed, current
 
 
 async def build(user: User) -> Usage:
+    plan = await planusage.plan_usage()  # the real plan figure first, then the maths
     await usage.refresh(user)
     snap = usage.snapshot(user)
-    plan = await planusage.plan_usage()
     return Usage(**{**snap, "sessions": [ClaudeSession(**s) for s in snap["sessions"]],
                     "plan": PlanUsage(**plan) if plan else None})
 

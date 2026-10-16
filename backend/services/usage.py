@@ -59,9 +59,10 @@ def snapshot(user: User) -> dict:
     plan, period, share = planusage.cached(), user.period or DEFAULT_PERIOD, user.share or DEFAULT_SHARE
     start, end = _window(period, plan)
     events = _in_window(_state.get(user.name, {"events": {}})["events"].values(), start, end)
-    budget = capacity.estimate(plan, _everyone_used(*_window("week", plan)), period) * share / 100
+    size = capacity.estimate(plan, _everyone_used(*_window("week", plan)), period)  # tokens = 100% of the plan
+    budget = size * share / 100
     used = sum(weigh(e["tokens"]) for e in events)
     live = bool(procs.claude_procs(user.uid))
-    return {"used": used, "budget": budget, "share": share, "period": period, "percent": 100 * used / budget if budget else 0.0,
+    return {"used": used, "budget": budget, "share": share, "points": 100 * used / size, "period": period, "percent": 100 * used / budget if budget else 0.0,
             "resets_at": end.timestamp(), "blocked": bool(budget) and used >= budget,
             "sessions": _sessions(events, live)}

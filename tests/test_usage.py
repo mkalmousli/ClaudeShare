@@ -77,3 +77,22 @@ def test_capacity_is_calibrated_from_plan_figure_and_window_from_reset():
 def pytest_approx(value):
     import pytest
     return pytest.approx(value)
+
+
+async def test_plan_is_fetched_before_numbers_are_built(monkeypatch):
+    from backend.resolvers import usage as resolver
+    calls = []
+
+    async def fake_plan():
+        calls.append("plan")
+        return None
+
+    async def fake_refresh(_user):
+        calls.append("refresh")
+
+    monkeypatch.setattr(resolver.planusage, "plan_usage", fake_plan)
+    monkeypatch.setattr(resolver.usage, "refresh", fake_refresh)
+    monkeypatch.setattr(resolver.usage, "snapshot", lambda _u: {"used": 0, "budget": 1, "share": 20, "points": 0, "percent": 0,
+                                                                 "period": "week", "resets_at": 0, "blocked": False, "sessions": []})
+    await resolver.build(User("u2", 20002, "h"))
+    assert calls == ["plan", "refresh"]

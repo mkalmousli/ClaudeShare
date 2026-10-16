@@ -25,7 +25,7 @@ export function usageMeter(scope, onOpen) {
     scope.cleanup(onUsage((data) => {
         const pct = Math.min(100, data.percent);
         bar.style.width = pct + "%";
-        note.textContent = `You ${percent(data.percent)} · resets ${formatCountdown(data.resetsAt)}` + (data.plan && data.plan.sevenDay != null ? ` · Plan ${percent(data.plan.sevenDay)}` : "");
+        note.textContent = `You ${data.points.toFixed(1)}% of ${data.share}% · resets ${formatCountdown(data.resetsAt)}` + (data.plan && data.plan.sevenDay != null ? ` · Plan ${percent(data.plan.sevenDay)}` : "");
         note.style.fontWeight = data.percent >= METER.warn ? "700" : "400";
         node.title = data.blocked ? "Limit reached: Claude is paused until the period resets" : "Claude usage this " + data.period;
     }));

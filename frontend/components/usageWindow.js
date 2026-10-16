@@ -39,7 +39,7 @@ function sessionRow(item) {
 function render(content, data) {
     clear(content);
     const stats = add(el("div", { ...row(SPACE.md), flexWrap: "wrap" }),
-        stat(`This ${data.period}`, `${formatTokens(data.used)} / ${formatTokens(data.budget)}  (${percent(data.percent)})`, data.percent),
+        stat(`Your share (${data.share}% of the plan)`, `${data.points.toFixed(1)}% used  (${percent(data.percent)} of your slice)`, data.percent),
         stat("Resets in", formatCountdown(data.resetsAt), null));
     const plan = data.plan ? add(el("div", { ...row(SPACE.md), flexWrap: "wrap" }),
         stat("Plan · 5 hours", data.plan.fiveHour == null ? "n/a" : percent(data.plan.fiveHour), data.plan.fiveHour),
