@@ -1,7 +1,7 @@
 """Step: Cloudflare Tunnel, either fully automatic or with an existing tunnel token."""
 import re
 
-from . import ui
+from . import cloudflared_login, ui
 from .cloudflare import Cloudflare, CloudflareError
 
 HOST_RE = re.compile(r"^(?=.{4,253}$)([a-z0-9-]+\.)+[a-z]{2,}$")
@@ -37,3 +37,7 @@ def automatic(hostname: str) -> dict[str, str]:
 def manual() -> dict[str, str]:
     ui.info("In Cloudflare Zero Trust create a tunnel, copy its token, and add a public hostname pointing to [bold]http://app:3000[/].")
     return {"TUNNEL_TOKEN": ui.ask("Tunnel token", secret=True, check=lambda v: None if len(v) > 40 else "That looks too short.")}
+
+
+def browser(hostname: str) -> dict[str, str]:
+    return cloudflared_login.setup_tunnel(hostname)

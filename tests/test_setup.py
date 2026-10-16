@@ -42,3 +42,12 @@ def test_tunnel_created_and_dns_conflict_detected(cf):
 def test_api_errors_surface_message(cf):
     with pytest.raises(CloudflareError, match="nope"):
         cf.verify()
+
+
+def test_tunnel_id_parsing_and_config(tmp_path, monkeypatch):
+    from setup import cloudflared_login as cl
+    monkeypatch.setattr(cl, "DIR", tmp_path)
+    monkeypatch.setattr(cl, "run", lambda *a, echo=False: (0, "Created tunnel claudeshare-x with id 6ff42ae2-765d-4adf-8112-31c55c1551ef"))
+    assert cl.tunnel_id("claudeshare-x") == "6ff42ae2-765d-4adf-8112-31c55c1551ef"
+    assert cl.URL_RE.search("Visit https://dash.cloudflare.com/argotunnel?aud=1&callback=x now").group(0).startswith("https://dash.cloudflare.com/argotunnel")
+    assert "http://app:3000" in cl.CONFIG.format(tunnel="t", hostname="h.example.com")

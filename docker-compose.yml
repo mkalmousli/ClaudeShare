@@ -33,5 +33,15 @@ services:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
     depends_on: [app]
 
+  cloudflared-local:      # tunnel created by browser sign-in; config lives in ./.cloudflared
+    image: cloudflare/cloudflared:latest
+    profiles: [cloudflare-local]
+    restart: "no"
+    user: "${CF_UID:-65532}:${CF_GID:-65532}"
+    command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
+    volumes:
+      - ./.cloudflared:/etc/cloudflared:ro
+    depends_on: [app]
+
 volumes:
   data:

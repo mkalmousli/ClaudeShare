@@ -17,10 +17,10 @@ git clone https://github.com/mkalmousli/ClaudeShare && cd ClaudeShare
 uv run setup
 ```
 
-The guided setup asks for access (Cloudflare Tunnel automatic / existing token / local only), your
-hostname, usage limits, and resource caps. For the automatic mode, give it a Cloudflare API token
-with *Tunnel: Edit*, *DNS: Edit*, *Zone: Read*; it creates the tunnel, routes the hostname and the
-DNS record. It then builds the image, installs `claudeshare.service` (the only step that uses
+The guided setup asks for access (Cloudflare Tunnel: browser sign-in, API token, or existing token; or local only), your
+hostname, usage limits, and resource caps. The default is **browser sign-in**: setup opens Cloudflare's own page, you pick your domain and click
+*Authorize*, and it creates the tunnel, the DNS record and the config for you (no token to copy). API-token
+and existing-token modes are still available. It then builds the image, installs `claudeshare.service` (the only step that uses
 `sudo`), has you sign the shared Claude in once, and creates the first user.
 
 ## Day to day (no root needed)
