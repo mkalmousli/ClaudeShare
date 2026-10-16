@@ -28,8 +28,10 @@ RESERVED_NAMES = {"root", "daemon", "bin", "sys", "nobody", "admin", "claude", "
 WEIGHTS = {"input": 1.0, "output": 5.0, "cache_write": 1.25, "cache_read": 0.1}
 PERIODS = ("day", "week", "month")
 DEFAULT_PERIOD = os.environ.get("USAGE_PERIOD", "week")
-DEFAULT_BUDGET = float(os.environ.get("USAGE_BUDGET", "20000000"))
+# 100% = what the whole plan allows per period, in weighted tokens (an internal yardstick).
 PLAN_TOKENS = float(os.environ.get("USAGE_PLAN_TOKENS", "100000000"))
+DEFAULT_SHARE = float(os.environ.get("USAGE_SHARE", "20"))  # percent of the plan per person
+DEFAULT_BUDGET = PLAN_TOKENS * DEFAULT_SHARE / 100
 RESET_WEEKDAY = int(os.environ.get("USAGE_RESET_DAY", "0"))  # 0 = Monday
 RESET_HOUR = int(os.environ.get("USAGE_RESET_HOUR", "0"))  # UTC
 HISTORY_DAYS = 32

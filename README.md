@@ -32,7 +32,7 @@ claudeshare boot on|off            # start automatically at boot
 claudeshare logs [-f]
 claudeshare user add alice         # prints URL + key (shown once)
 claudeshare user list | passwd NAME | del NAME [--purge] | sessions NAME
-claudeshare user limit alice 25%   # a share of the plan, or 5m / 800k tokens; add --period day|week|month
+claudeshare user limit alice 25%   # a percentage of the plan (or raw tokens like 5m); add --period day|week|month
 claudeshare login                  # sign the shared source Claude in again
 claudeshare update                 # after `git pull`: rebuild and restart
 ```

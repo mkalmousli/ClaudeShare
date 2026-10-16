@@ -24,14 +24,12 @@ def access() -> dict[str, str]:
 
 
 def usage() -> dict[str, str]:
-    ui.console.print("Claude's own plan limit is shared by everyone. Give each person a weekly (or daily/monthly) slice;\n"
+    ui.console.print("Claude's own plan limit is shared by everyone. Give each person a percentage slice per period;\n"
                      "when they use it up, their [bold]claude[/] stops until the period resets.")
     period = PERIODS[ui.choose("Usage period", PERIODS, default=2)][0]
-    plan = ui.ask_int("Total weighted tokens your plan allows per period (millions)", 100)
     share = ui.ask_int("Default share per person (percent of the plan)", 20)
     reset = ui.ask_int("Weekly reset day (0 = Monday … 6 = Sunday)", 0)
-    return {"USAGE_PERIOD": period, "USAGE_PLAN_TOKENS": str(plan * 1_000_000),
-            "USAGE_BUDGET": str(int(plan * 1_000_000 * share / 100)), "USAGE_RESET_DAY": str(reset)}
+    return {"USAGE_PERIOD": period, "USAGE_SHARE": str(share), "USAGE_RESET_DAY": str(reset)}
 
 
 def resources() -> dict[str, str]:
