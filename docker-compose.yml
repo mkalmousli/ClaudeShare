@@ -40,7 +40,7 @@ services:
     user: "${CF_UID:-65532}:${CF_GID:-65532}"
     command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
     volumes:
-      - ./.cloudflared:/etc/cloudflared:ro
+      - ./.cloudflared:/etc/cloudflared:ro,z
     depends_on: [app]
 
 volumes:

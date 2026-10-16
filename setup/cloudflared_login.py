@@ -26,9 +26,21 @@ ingress:
 """
 
 
+def rootless() -> bool:
+    """Rootless Docker maps container root to *you*, so that is the user that can write the folder."""
+    out = subprocess.run(["docker", "info", "--format", "{{.SecurityOptions}}"], capture_output=True, text=True).stdout
+    return "rootless" in out
+
+
+def identity() -> tuple[int, int]:
+    return (0, 0) if rootless() else (os.getuid(), os.getgid())
+
+
 def docker(*args: str) -> subprocess.Popen:
-    cmd = ["docker", "run", "--rm", "--user", f"{os.getuid()}:{os.getgid()}", "-e", "HOME=/home/nonroot",
-           "-v", f"{DIR}:/home/nonroot/.cloudflared", IMAGE, *args]
+    uid, gid = identity()
+    # ":z" relabels the folder so SELinux hosts (Fedora, RHEL…) allow the container to use it.
+    cmd = ["docker", "run", "--rm", "--user", f"{uid}:{gid}", "-e", "HOME=/home/nonroot",
+           "-v", f"{DIR}:/home/nonroot/.cloudflared:z", IMAGE, *args]
     return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
 
@@ -47,6 +59,8 @@ def run(*args: str, echo: bool = False) -> tuple[int, str]:
 
 def login() -> None:
     DIR.mkdir(mode=0o700, exist_ok=True)
+    ui.info("Fetching the Cloudflare tunnel tool…")
+    subprocess.run(["docker", "pull", "-q", IMAGE], capture_output=True)
     if (DIR / "cert.pem").exists() and ui.yes("Already signed in to Cloudflare here. Reuse it?"):
         return
     ui.console.print("\n[bold]Open the Cloudflare page below[/], choose your domain and click [bold]Authorize[/].\n"
@@ -77,4 +91,5 @@ def setup_tunnel(hostname: str) -> dict[str, str]:
         raise SystemExit(f"Could not create the DNS record: {out.strip().splitlines()[-1]}")
     ui.ok(f"{hostname} now points at your tunnel")
     (DIR / "config.yml").write_text(CONFIG.format(tunnel=tunnel, hostname=hostname))
-    return {"COMPOSE_PROFILES": "cloudflare-local", "CF_UID": str(os.getuid()), "CF_GID": str(os.getgid())}
+    uid, gid = identity()
+    return {"COMPOSE_PROFILES": "cloudflare-local", "CF_UID": str(uid), "CF_GID": str(gid)}
