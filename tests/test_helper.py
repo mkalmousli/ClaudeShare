@@ -20,3 +20,13 @@ def test_valid_commands_pass_through():
 def test_hostile_or_malformed_input_is_refused(bad):
     with pytest.raises(SystemExit):
         ctl_args.admin_args(bad)
+
+
+def test_resources_command_grammar():
+    ok = ["resources", "alice", "--mem", "2g", "--cpu", "1.5", "--procs", "300", "--disk", "20g"]
+    assert ctl_args.admin_args(ok) == ok
+    assert ctl_args.admin_args(["resources", "alice", "--mem", "default"]) == ["resources", "alice", "--mem", "default"]
+    for bad in (["resources", "alice", "--mem", "lots"], ["resources", "alice", "--cpu", "-1"], ["resources", "alice", "--bogus", "1"],
+                ["resources", "alice", "--mem"], ["resources", "a;b", "--mem", "1g"]):
+        with pytest.raises(SystemExit):
+            ctl_args.admin_args(bad)

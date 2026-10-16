@@ -67,6 +67,19 @@ class PlanUsage:
 
 
 @strawberry.type
+class Resources:
+    mem_used: float
+    mem_limit: float
+    cpu_used: float
+    cpu_limit: float
+    procs_used: int
+    procs_limit: float
+    disk_used: float
+    disk_limit: float
+    notice: str
+
+
+@strawberry.type
 class Usage:
     used: float
     budget: float
@@ -78,3 +91,4 @@ class Usage:
     blocked: bool
     sessions: list[ClaudeSession]
     plan: PlanUsage | None
+    resources: Resources

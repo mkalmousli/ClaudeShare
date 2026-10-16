@@ -36,6 +36,16 @@ PERIOD_WEEKS = {"day": 1 / 7, "week": 1.0, "month": 30 / 7}
 RESET_WEEKDAY = int(os.environ.get("USAGE_RESET_DAY", "0"))  # 0 = Monday
 RESET_HOUR = int(os.environ.get("USAGE_RESET_HOUR", "0"))  # UTC
 HISTORY_DAYS = 32
+MB = 1024 * 1024
+# Per-user resource defaults (each user can be overridden with `claudeshare user resources`).
+DEFAULT_LIMITS = {
+    "mem_mb": float(os.environ.get("USER_MEM_MB", "2048")),
+    "cpu": float(os.environ.get("USER_CPU", "1")),  # cores
+    "procs": float(os.environ.get("USER_PROCS", "512")),
+    "disk_mb": float(os.environ.get("USER_DISK_MB", "10240")),
+}
+DISK_REFRESH_SECONDS = 60
+DISK_REFRESH_OVER_SECONDS = 15
 WATCH_SECONDS = 5
 CREDSYNC_SECONDS = 30
 PLAN_CACHE_SECONDS = 60

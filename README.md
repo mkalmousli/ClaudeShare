@@ -33,6 +33,7 @@ claudeshare boot on|off            # start automatically at boot
 claudeshare logs [-f]
 claudeshare user add alice         # prints URL + key (shown once)
 claudeshare user list | passwd NAME | del NAME [--purge] | sessions NAME
+claudeshare user resources alice --mem 4g --cpu 2 --disk 30g   # per-person RAM / CPU cores / disk (--procs too)
 claudeshare user limit alice 25%   # a percentage of the plan; add --period day|week|month
 claudeshare login                  # sign the shared source Claude in again
 claudeshare update                 # after `git pull`: rebuild and restart
@@ -56,13 +57,19 @@ If `claudeshare` is not on your PATH after setup: `uv tool update-shell`.
   from each user's own Claude session logs. The taskbar meter shows your share, time to reset and, when
   available, the whole plan's usage; click it for per-session details. At 100% the user's `claude`
   processes are stopped and new ones refuse to start until the period resets. Terminals and files keep working.
+- **Per-user resources:** every person has their own RAM, CPU, process and disk limits (defaults chosen in setup,
+  overridable per user), shown live in the Usage window. Over the RAM limit, their biggest process is stopped and they are
+  told why; CPU is capped by pinning them to `ceil(limit)` cores and lowering priority when they exceed it; the process count
+  is capped at shell start; at the disk limit new writes are refused until they delete something (checked every 15–60 s).
 - **Sessions:** terminals survive page reloads (scrollback replayed); Claude sessions are tracked per user.
 - **Auth:** scrypt-hashed keys, signed HttpOnly SameSite=Strict cookies, rate-limited login, Origin checks.
   Changing a key signs that user out everywhere.
 
 ## Know the limits
 
-- Everyone shares one container's CPU, RAM and disk (caps are set in setup; there are no per-user disk quotas).
+- Everyone still shares one container's CPU, RAM and disk (the container caps are set in setup). Per-user limits are enforced by
+  a watcher every few seconds, not by the kernel: a memory spike can briefly overshoot, and a user can write past the disk
+  limit from a terminal for up to a minute before writes are refused.
 - Each user's copy of the Claude login is readable by that user — inherent to sharing a login.
 - Plan-wide usage and token refresh use Anthropic's OAuth endpoints, which are undocumented and may change;
   both degrade quietly (the plan figure disappears; run `claudeshare login` if the shared login expires).

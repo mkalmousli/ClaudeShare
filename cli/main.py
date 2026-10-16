@@ -11,7 +11,7 @@ HELP = """commands:
   boot on|off          start automatically at boot (or not)
   login                sign the shared source Claude in again
   update               rebuild after `git pull`, then restart
-  user add|list|passwd|del|limit|sessions
+  user add|list|passwd|del|limit|resources|sessions
   setup                guided configuration (access, limits, Claude login, first user)
   uninstall [--purge]  remove the service and command; --purge also deletes all data"""
 

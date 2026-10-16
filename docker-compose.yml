@@ -8,6 +8,10 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-auto}
       USAGE_PERIOD: ${USAGE_PERIOD:-week}
       USAGE_SHARE: ${USAGE_SHARE:-20}
+      USER_MEM_MB: ${USER_MEM_MB:-2048}
+      USER_CPU: ${USER_CPU:-1}
+      USER_PROCS: ${USER_PROCS:-512}
+      USER_DISK_MB: ${USER_DISK_MB:-10240}
       USAGE_RESET_DAY: ${USAGE_RESET_DAY:-0}
       USAGE_RESET_HOUR: ${USAGE_RESET_HOUR:-0}
     volumes:
@@ -15,7 +19,7 @@ services:
     ports:
       - "${BIND:-127.0.0.1}:${PORT:-3000}:3000"
     cap_drop: [ALL]
-    cap_add: [CHOWN, SETUID, SETGID, DAC_OVERRIDE, FOWNER, KILL]
+    cap_add: [CHOWN, SETUID, SETGID, DAC_OVERRIDE, FOWNER, KILL, SYS_NICE]
     security_opt: ["no-new-privileges:true"]
     mem_limit: ${MEM_LIMIT:-4g}
     cpus: ${CPU_LIMIT:-2}

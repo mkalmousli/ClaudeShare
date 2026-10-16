@@ -5,8 +5,8 @@ Only ever invoked through the validated root helper (system/ctl.py).
 import asyncio
 
 from . import admin_views as view
-from .admin_parse import build_parser, parse_amount
-from .services import accounts, passwords, planusage, store, usage
+from .admin_parse import RESOURCE_FLAGS, build_parser, parse_amount, parse_limit
+from .services import accounts, limits, passwords, planusage, store, usage
 
 def cmd_add(args) -> None:
     key = args.key or passwords.new_key()
@@ -37,6 +37,16 @@ def cmd_limit(args) -> None:
     view.ok(f'Limit for "{args.name}" updated')
 
 
+def cmd_resources(args) -> None:
+    user = store.get(args.name)
+    if not user:
+        raise ValueError(f'No such user "{args.name}".')
+    changes = {field: parse_limit(field, getattr(args, flag[2:])) for flag, field in RESOURCE_FLAGS.items() if getattr(args, flag[2:])}
+    changes and store.update(args.name, **changes)
+    changes and view.ok(f'Resource limits for "{args.name}" updated (applied within a few seconds)')
+    view.resources_table(args.name, limits.effective(store.get(args.name)))
+
+
 async def _rows() -> list[dict]:
     rows = []
     await planusage.plan_usage()
@@ -62,7 +72,7 @@ def cmd_sessions(args) -> None:
 
 
 def main() -> None:
-    commands = {"add": cmd_add, "passwd": cmd_passwd, "del": cmd_del, "limit": cmd_limit,
+    commands = {"add": cmd_add, "passwd": cmd_passwd, "del": cmd_del, "limit": cmd_limit, "resources": cmd_resources,
                 "sessions": cmd_sessions, "status": cmd_status}
     args = build_parser(commands).parse_args()
     try:

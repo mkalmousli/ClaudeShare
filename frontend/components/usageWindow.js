@@ -3,6 +3,7 @@ import { FONT, METER, RADIUS, SPACE } from "../consts.js";
 import { add, clear, colored, column, el, row } from "../dom.js";
 import { formatCountdown, formatDate, formatTokens, percent, baseName } from "../format.js";
 import { onUsage } from "../usageStore.js";
+import { resourceBlock } from "./resourceStats.js";
 import { openWindow } from "./window.js";
 import { focusWindow } from "./windows.js";
 
@@ -17,7 +18,7 @@ function bar(valuePct) {
     return add(track, fill);
 }
 
-function stat(name, value, pct) {
+export function stat(name, value, pct) {
     const box = el("div", { ...column, gap: SPACE.xs + "px", flex: "1", padding: SPACE.md + "px", borderRadius: RADIUS.md + "px" });
     colored(box, (pal) => ({ border: `1px solid ${pal.border}`, background: pal.raised }));
     const head = add(el("div", { ...row(), justifyContent: "space-between" }), el("span", { opacity: "0.65" }, { textContent: name }), el("b", {}, { textContent: value }));
@@ -44,10 +45,11 @@ function render(content, data) {
     const plan = data.plan ? add(el("div", { ...row(SPACE.md), flexWrap: "wrap" }),
         stat("Plan · 5 hours", data.plan.fiveHour == null ? "n/a" : percent(data.plan.fiveHour), data.plan.fiveHour),
         stat("Plan · 7 days", data.plan.sevenDay == null ? "n/a" : percent(data.plan.sevenDay), data.plan.sevenDay)) : null;
+    const usage = resourceBlock(data.resources);
     const head = el("div", { display: "grid", gridTemplateColumns: GRID, gap: SPACE.sm + "px", padding: `${SPACE.sm}px ${SPACE.md}px`, opacity: "0.6", fontSize: FONT.size.sm + "px" });
     COLUMNS.forEach((name) => add(head, el("span", {}, { textContent: name })));
     const empty = el("div", { padding: SPACE.lg + "px", opacity: "0.6" }, { textContent: "No Claude sessions yet this period." });
-    add(content, data.blocked ? el("b", {}, { textContent: "Limit reached: Claude is paused until the period resets." }) : null, stats, plan, head,
+    add(content, data.blocked ? el("b", {}, { textContent: "Limit reached: Claude is paused until the period resets." }) : null, stats, plan, usage, head,
         ...(data.sessions.length ? data.sessions.map(sessionRow) : [empty]));
 }
 

@@ -8,6 +8,7 @@ import termios
 
 from ..config import user_env
 from ..models import User
+from . import limits
 
 
 def set_size(fd: int, cols: int, rows: int) -> None:
@@ -28,9 +29,10 @@ def spawn(user: User, cwd: str | None, cols: int, rows: int) -> tuple[subprocess
     master, slave = pty.openpty()
     os.fchown(slave, user.uid, user.uid)
     set_size(master, max(cols, 2), max(rows, 2))
+    setup = limits.child_setup(user)
     proc = subprocess.Popen(
         ["/bin/bash", "--login"], stdin=slave, stdout=slave, stderr=slave, cwd=safe_cwd(user, cwd),
         env=user_env(user.name, user.home), user=user.uid, group=user.uid, extra_groups=[],
-        start_new_session=True, preexec_fn=_take_tty, close_fds=True)
+        start_new_session=True, preexec_fn=lambda: (_take_tty(), setup()), close_fds=True)
     os.close(slave)
     return proc, master

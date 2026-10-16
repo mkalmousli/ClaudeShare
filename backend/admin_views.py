@@ -5,6 +5,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .config import PUBLIC_URL
+from .units import format_mb
 
 console = Console(highlight=False)
 
@@ -39,6 +40,12 @@ def users_table(rows: list[dict]) -> None:
     console.print()
     console.print(table)
     console.print()
+
+
+def resources_table(name: str, lim: dict) -> None:
+    console.print(f"\n  [bold]{name}[/]  [dim]resource limits[/]")
+    console.print(f"  [cyan]RAM  [/] {format_mb(lim['mem_mb'])}\n  [cyan]CPU  [/] {lim['cpu']:g} core(s)\n"
+                  f"  [cyan]Procs[/] {lim['procs']:.0f}\n  [cyan]Disk [/] {format_mb(lim['disk_mb'])}\n")
 
 
 def sessions_table(sessions: list[dict]) -> None:

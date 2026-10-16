@@ -7,7 +7,7 @@ from pathlib import Path
 from . import output as out
 from .privileged import helper, state
 
-USER_COMMANDS = {"add", "list", "passwd", "del", "limit", "sessions"}
+USER_COMMANDS = {"add", "list", "passwd", "del", "limit", "resources", "sessions"}
 
 
 def _url(info: dict[str, str]) -> str:
@@ -84,6 +84,6 @@ def update() -> int:
 
 def user(args: list[str]) -> int:
     if not args or args[0] not in USER_COMMANDS:
-        out.fail("usage: claudeshare user add|list|passwd|del|limit|sessions …")
+        out.fail("usage: claudeshare user add|list|passwd|del|limit|resources|sessions …")
         return 2
     return helper("admin", *args).returncode

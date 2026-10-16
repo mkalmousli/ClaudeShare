@@ -3,7 +3,7 @@ import asyncio
 
 from ..config import BLOCKED_DIR, WATCH_SECONDS
 from ..models import User
-from . import planusage, procs, store, usage
+from . import enforcement, fs_client, limits, planusage, procs, store, usage
 
 
 def _flag(user: User):
@@ -18,10 +18,18 @@ def apply(user: User, snap: dict) -> None:
         _flag(user).unlink(missing_ok=True)
 
 
+async def check_resources(user: User, groups: dict) -> None:
+    procs_now = groups.get(user.uid, [])
+    enforcement.enforce(user, procs_now, enforcement.measure(user, procs_now))
+    await limits.refresh_disk(user, lambda u: fs_client.call(u, "disk"))
+
+
 async def tick() -> None:
     await planusage.plan_usage()  # keeps the plan window and size estimate fresh
+    groups = enforcement.group_by_uid()
     for user in store.all_users():
         try:
+            await check_resources(user, groups)
             await usage.refresh(user)
             apply(user, usage.snapshot(user))
         except Exception as exc:  # one broken account must not stop the loop

@@ -6,8 +6,8 @@ from strawberry.types import Info
 
 from ..config import WATCH_SECONDS
 from ..models import User
-from ..services import planusage, usage
-from ..types import ClaudeSession, PlanUsage, Usage
+from ..services import enforcement, planusage, usage
+from ..types import ClaudeSession, PlanUsage, Resources, Usage
 from .context import Authed, current
 
 
@@ -16,7 +16,7 @@ async def build(user: User) -> Usage:
     await usage.refresh(user)
     snap = usage.snapshot(user)
     return Usage(**{**snap, "sessions": [ClaudeSession(**s) for s in snap["sessions"]],
-                    "plan": PlanUsage(**plan) if plan else None})
+                    "plan": PlanUsage(**plan) if plan else None, "resources": Resources(**enforcement.report(user))})
 
 
 @strawberry.type

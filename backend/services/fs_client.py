@@ -5,6 +5,7 @@ import sys
 
 from ..config import APP_ROOT, user_env
 from ..models import User
+from . import limits
 
 
 class FsError(Exception):
@@ -12,6 +13,8 @@ class FsError(Exception):
 
 
 async def call(user: User, op: str, **args) -> dict:
+    if op in limits.WRITE_OPS and limits.disk_exceeded(user):
+        raise FsError("Disk quota reached. Delete some files to free space.")
     env = {**user_env(user.name, user.home), "PYTHONPATH": str(APP_ROOT), "PYTHONDONTWRITEBYTECODE": "1"}
     proc = await asyncio.create_subprocess_exec(
         sys.executable, "-s", "-m", "backend.fsworker",

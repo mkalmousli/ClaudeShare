@@ -5,10 +5,10 @@ Always started by the server with the target user's uid/gid, never as root.
 import json
 import sys
 
-from . import ops_archive, ops_edit, ops_list, ops_move, ops_usage
+from . import ops_archive, ops_disk, ops_edit, ops_list, ops_move, ops_usage
 from .paths import OpError
 
-OPS = {**ops_list.OPS, **ops_edit.OPS, **ops_move.OPS, **ops_archive.OPS, **ops_usage.OPS}
+OPS = {**ops_list.OPS, **ops_edit.OPS, **ops_move.OPS, **ops_archive.OPS, **ops_usage.OPS, **ops_disk.OPS}
 
 ERRORS = {FileNotFoundError: "No such file or folder", PermissionError: "Permission denied",
           FileExistsError: "Already exists", IsADirectoryError: "Is a folder",

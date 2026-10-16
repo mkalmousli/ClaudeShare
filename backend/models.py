@@ -15,6 +15,10 @@ class User:
     last_login: str = ""
     share: float | None = None  # percent of the plan; None = server default
     period: str | None = None  # day | week | month; None = server default
+    mem_mb: float | None = None  # per-user resource overrides; None = server default
+    cpu: float | None = None  # cores
+    procs: float | None = None
+    disk_mb: float | None = None
 
     @property
     def home(self) -> Path:

@@ -12,7 +12,7 @@ def collect(existing: dict[str, str]) -> dict[str, str]:
     values.update(steps.access())
     ui.step(2, TOTAL, "Usage limits", "Split your Claude plan between people.")
     values.update(steps.usage())
-    ui.step(3, TOTAL, "Resources", "Hard caps for everything the users run.")
+    ui.step(3, TOTAL, "Resources", "Limits for the whole container and for each person.")
     values.update(steps.resources())
     return values
 

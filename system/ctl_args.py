@@ -6,6 +6,12 @@ NAME = re.compile(r"^[a-z][a-z0-9_-]{1,23}$")
 KEY = re.compile(r"^[A-Za-z0-9_-]{8,128}$")
 AMOUNT = re.compile(r"^(default|\d{1,3}(\.\d+)?%?)$")
 PERIOD = re.compile(r"^(day|week|month)$")
+SIZE = re.compile(r"^(default|\d+(\.\d+)?[kKmMgGtT]?[bB]?)$")
+NUMBER = re.compile(r"^(default|\d+(\.\d+)?)$")
+# command -> flags it accepts (None = no value) ; command -> positional count
+FLAGS = {"add": {"--key": KEY}, "passwd": {"--key": KEY}, "del": {"--purge": None}, "limit": {"--period": PERIOD},
+         "resources": {"--mem": SIZE, "--cpu": NUMBER, "--procs": NUMBER, "--disk": SIZE}}
+SHAPE = {"add": 1, "passwd": 1, "del": 1, "limit": 2, "resources": 1, "sessions": 1, "status": 0, "list": 0}
 
 
 def fail(message: str) -> None:
@@ -22,26 +28,20 @@ def pick(value: str, pattern: re.Pattern, what: str) -> str:
 def admin_args(args: list[str]) -> list[str]:
     """Validate a backend.admin command line against a strict grammar."""
     cmd, rest = (args or [""])[0], args[1:]
-    flags = {"add": {"--key"}, "passwd": {"--key"}, "del": {"--purge"}, "limit": {"--period"}}
-    shape = {"add": 1, "passwd": 1, "del": 1, "limit": 2, "sessions": 1, "status": 0, "list": 0}
-    if cmd not in shape:
+    if cmd not in SHAPE:
         fail("Unknown admin command.")
-    positional = []
-    out = [cmd]
-    idx = 0
+    allowed, positional, out, idx = FLAGS.get(cmd, {}), [], [cmd], 0
     while idx < len(rest):
         item = rest[idx]
-        if item in flags.get(cmd, set()):
-            if item == "--purge":
-                out.append(item)
-            else:
+        if item in allowed:
+            out.append(item)
+            if allowed[item] is not None:
                 idx += 1
-                value = rest[idx] if idx < len(rest) else ""
-                out += [item, pick(value, KEY if item == "--key" else PERIOD, item)]
+                out.append(pick(rest[idx] if idx < len(rest) else "", allowed[item], item))
         else:
             positional.append(item)
         idx += 1
-    if len(positional) != shape[cmd]:
+    if len(positional) != SHAPE[cmd]:
         fail("Wrong number of arguments.")
     if positional:
         out.insert(1, pick(positional[0], NAME, "user name"))

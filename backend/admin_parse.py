@@ -3,6 +3,8 @@ import argparse
 import re
 
 from .config import PERIODS
+from .units import parse_size_mb
+
 
 def parse_amount(text: str) -> float | None:
     """A percentage of the plan: '25' or '25%'. 'default' goes back to the server default."""
@@ -14,10 +16,24 @@ def parse_amount(text: str) -> float | None:
     return float(match[1])
 
 
+def parse_limit(field: str, text: str) -> float | None:
+    """One resource value; 'default' clears the override."""
+    if text == "default":
+        return None
+    if field in ("mem_mb", "disk_mb"):
+        return parse_size_mb(text)
+    if not re.fullmatch(r"\d+(\.\d+)?", text) or float(text) <= 0:
+        raise ValueError("Give a positive number (cores can be fractional, e.g. 1.5).")
+    return float(text)
+
+
+RESOURCE_FLAGS = {"--mem": "mem_mb", "--cpu": "cpu", "--procs": "procs", "--disk": "disk_mb"}
+
+
 def build_parser(cmds: dict) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="admin")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    for name, extra in (("add", "key"), ("passwd", "key"), ("del", "purge"), ("limit", "amount"), ("sessions", None), ("status", None)):
+    for name, extra in (("add", "key"), ("passwd", "key"), ("del", "purge"), ("limit", "amount"), ("resources", "resources"), ("sessions", None), ("status", None)):
         item = sub.add_parser(name)
         item.set_defaults(fn=cmds[name])
         if name != "status":
@@ -26,6 +42,9 @@ def build_parser(cmds: dict) -> argparse.ArgumentParser:
             item.add_argument("--key")
         if extra == "purge":
             item.add_argument("--purge", action="store_true")
+        if extra == "resources":
+            for flag in RESOURCE_FLAGS:
+                item.add_argument(flag)
         if extra == "amount":
             item.add_argument("amount")
             item.add_argument("--period", choices=PERIODS)

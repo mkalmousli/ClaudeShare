@@ -22,7 +22,8 @@ async function run(query, variables = {}) {
 
 const USAGE_FIELDS = `used budget share points percent period resetsAt blocked
     plan { fiveHour fiveHourResets sevenDay sevenDayResets }
-    sessions { id project started last messages tokens live }`;
+    sessions { id project started last messages tokens live }
+    resources { memUsed memLimit cpuUsed cpuLimit procsUsed procsLimit diskUsed diskLimit notice }`;
 
 export const auth = {
     me: () => run("query { me { username } }").then((d) => d.me),
