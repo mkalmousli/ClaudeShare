@@ -32,16 +32,24 @@ def rootless() -> bool:
     return "rootless" in out
 
 
-def identity() -> tuple[int, int]:
+def owner() -> tuple[int, int]:
+    """Who should own the credentials on the host (and run the tunnel service)."""
     return (0, 0) if rootless() else (os.getuid(), os.getgid())
 
 
 def docker(*args: str) -> subprocess.Popen:
-    uid, gid = identity()
-    # ":z" relabels the folder so SELinux hosts (Fedora, RHEL…) allow the container to use it.
-    cmd = ["docker", "run", "--rm", "--user", f"{uid}:{gid}", "-e", "HOME=/home/nonroot",
+    # Root inside the container can always write the folder; ownership is handed back afterwards.
+    # ":z" relabels the folder so SELinux hosts (Fedora, RHEL…) allow it.
+    cmd = ["docker", "run", "--rm", "--user", "0:0", "-e", "HOME=/home/nonroot",
            "-v", f"{DIR}:/home/nonroot/.cloudflared:z", IMAGE, *args]
     return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+
+
+def hand_back() -> None:
+    """Files written by container-root belong to root on the host; sudo gives them back to you."""
+    uid, gid = owner()
+    if uid and subprocess.run(["sudo", "chown", "-R", f"{uid}:{gid}", str(DIR)]).returncode:
+        raise SystemExit("Could not take ownership of the Cloudflare credentials (sudo failed).")
 
 
 def run(*args: str, echo: bool = False) -> tuple[int, str]:
@@ -54,7 +62,9 @@ def run(*args: str, echo: bool = False) -> tuple[int, str]:
             link = URL_RE.search(line)
             if link:
                 webbrowser.open(link.group(0))  # silently does nothing on a server without a browser
-    return proc.wait(), "".join(lines)
+    code = proc.wait()
+    hand_back()
+    return code, "".join(lines)
 
 
 def login() -> None:
@@ -91,5 +101,5 @@ def setup_tunnel(hostname: str) -> dict[str, str]:
         raise SystemExit(f"Could not create the DNS record: {out.strip().splitlines()[-1]}")
     ui.ok(f"{hostname} now points at your tunnel")
     (DIR / "config.yml").write_text(CONFIG.format(tunnel=tunnel, hostname=hostname))
-    uid, gid = identity()
+    uid, gid = owner()
     return {"COMPOSE_PROFILES": "cloudflare-local", "CF_UID": str(uid), "CF_GID": str(gid)}
